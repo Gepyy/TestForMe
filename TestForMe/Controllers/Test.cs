@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Company.BusinessLogic;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using TestForMe.Models;
@@ -9,6 +10,11 @@ namespace TestForMe.Controllers
     [ApiController]
     public class Test : Controller
     {
+        private ICompanyService _companyService;
+        public Test(ICompanyService companyService)
+        {
+            _companyService = companyService;    
+        }
         private static List<Groups> collection = new List<Groups>();
         [HttpGet("/index")]
         public IActionResult Index()
@@ -27,6 +33,7 @@ namespace TestForMe.Controllers
             {
                 if(collection.FindIndex(x => x.Id == group.Id) == -1)
                 {
+                    _companyService.CreateCompany(group.Id, group.NameofCompany, group.Description, group.Owner);
                     collection.Add(group);
                     return RedirectToAction("List");
                 }
@@ -49,8 +56,20 @@ namespace TestForMe.Controllers
             int index = collection.FindIndex(x => x.Id == id);
             return View("EditCompany", collection[index]);
         }
+        // [HttpPut("EditCompany")] // Route for the EditCompany action
+        // public ActionResult EditCompany(
+        //[FromQuery] int Id,
+        //[FromQuery] string __Invariant,
+        //[FromQuery] string NameofCompany,
+        //[FromQuery] string Description,
+        //[FromQuery] string Owner,
+        //[FromQuery] string __RequestVerificationToken)
+        // {
+        //     // Your existing code...
+        //      return RedirectToAction("List");
+        // }
         //[HttpPut("/put/{id:int}")]
-        //public IActionResult EditCompany(int id, [FromBody]Groups group)
+        //public IActionResult EditCompany([FromForm] int id, [FromForm] Groups group)
         //{
 
         //    if (id >= 0 && id < collection.Count)
@@ -64,7 +83,7 @@ namespace TestForMe.Controllers
         //    }
         //    return RedirectToAction("List");
         //}
-        //
+
         [HttpPost("/editcomplete")]
         public IActionResult EditCompany([FromForm] Groups group)
         {
@@ -110,7 +129,7 @@ namespace TestForMe.Controllers
         [HttpGet("/list")]
         public IActionResult List()
         {
-            return View("ListOfCompany", collection);
+            return View("ListOfCompany", _companyService.ReadCompany());
         }
     }
 }
